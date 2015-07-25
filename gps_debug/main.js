@@ -26,9 +26,6 @@ port.on('data', function(line) {
 
 mc.connect("mongodb://localhost:27017/gps_debug", function(err, db) {
     if(err) { return console.dir(err); }
-    db.createCollection('data', function(err, collection) {
-        return console.dir(err);
-    });
     collection = db.collection('data');
 
   
