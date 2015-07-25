@@ -12,3 +12,16 @@ Connection of GPS to Edison
 * J19 - 8 is UART1 TX, connect to RX of GPS (but not needed in this case)
 * J19 - 3 is GND, connect to GND
 * J20 - 1 is Power/VSYS, connect to VCC
+
+Installation of MongoDB
+-----------------------
+
+Install systemwide mongo-db npm: 
+<pre>$ npm install -g mongodb</pre>
+
+Download binary mongodb package from https://www.mongodb.org/downloads (Legacy 32-Bit Linux).
+Untar and copy to /usr/bin/.
+
+Start manually:
+<pre>mongodb --dbpath $yourpath$</pre>
+
