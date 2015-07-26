@@ -1,8 +1,9 @@
 Edison Node.js GPS Test-App
 ============================
+This project is created with the Intel XDK.
 
 Using Edison + breakout board + Navilock NL-552ETTL (any comparable GPS should work) 
-to retrieve and output data.
+to retrieve and save data to MongoDB.
 
 Connection of GPS to Edison
 ---------------------------
@@ -23,5 +24,5 @@ Download binary mongodb package from https://www.mongodb.org/downloads (Legacy 3
 Untar and copy to /usr/bin/.
 
 Start manually:
-<pre>mongodb --dbpath $yourpath$</pre>
-
+<pre>mongodb --dbpath $yourpath$ --syslog --journal</pre>
+or create a systemd launch script.
