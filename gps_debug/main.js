@@ -2,7 +2,8 @@
 /*jshint unused:true */
 // Leave the above lines for propper jshinting
 
-var mraa = require('mraa'); //require mraa
+// FIXME: MRAA is segfaulting node.js on edison
+//var mraa = require('mraa'); //require mraa
 var nmea = require('nmea');
 var serialport = require('serialport');
 var mc = require('mongodb').MongoClient;
@@ -10,10 +11,11 @@ var collection; // the mongo-db collection
 var gpsObj;
 var last = 0;
 var minTimeDist = 15; // no more than every 15 seconds a datapoint
-var uart = new mraa.Uart(0); // needed?
 
-console.log("start GPS decoder on port " + uart.getDevicePath());
-console.log('MRAA Version: ' + mraa.getVersion());
+// FIXME: MRAA is segfaulting node.js on edison
+//var uart = new mraa.Uart(0); 
+//console.log("start GPS decoder on port " + uart.getDevicePath());
+//console.log('MRAA Version: ' + mraa.getVersion());
 
 
 // connect to database
@@ -26,7 +28,7 @@ mc.connect("mongodb://localhost:27017/gps_debug", function(err, db) {
 });
 
 // open serialport
-var port = new serialport.SerialPort(uart.getDevicePath(), {
+var port = new serialport.SerialPort("/dev/ttyMFD1", {
     baudrate: 38400,
     parser: serialport.parsers.readline('\r\n'),
     dataBits: 8, 
@@ -42,6 +44,7 @@ port.on('data', function(line) {
     if (line.charAt(0) == "$"){ 
         try {
             gpsObj = nmea.parse(line);
+            // TODO: save time stamps to better recreate full timestamp (fix-type only contains the time)
             if (gpsObj.type == 'fix' && (Date.now()/1000-last) > minTimeDist){
                 last = Date.now()/1000;
                 console.log( gpsObj.timestamp + ": lat = " + gpsObj.lat + " / long = " + gpsObj.lon);
