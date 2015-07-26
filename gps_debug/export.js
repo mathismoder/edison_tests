@@ -56,7 +56,7 @@ function addPoint(point){
 }
 
 function getDateFromNMEATime(coordObj){
-    var d = new Date();
+    var d = new Date(); // TODO: extract from coordObj.date
     var t = coordObj.timestamp; // as string
     d.setHours(parseInt(t.substr(0,2)));
     d.setMinutes(parseInt(t.substr(2,2)));

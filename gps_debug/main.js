@@ -2,52 +2,68 @@
 /*jshint unused:true */
 // Leave the above lines for propper jshinting
 
-// FIXME: MRAA is segfaulting node.js on edison
-//var mraa = require('mraa'); //require mraa
+
 var nmea = require('nmea');
 var serialport = require('serialport');
 var mc = require('mongodb').MongoClient;
 var collection; // the mongo-db collection
 var gpsObj;
-var last = 0;
-var minTimeDist = 15; // no more than every 15 seconds a datapoint
+var lastPos = {"lat": 0, "lon": 0};
+var lastUpdate = 0;
+var strDate = null;
+var minTimeDist = 2; // no more than every 15 seconds a datapoint
 
 // FIXME: MRAA is segfaulting node.js on edison
+//var mraa = require('mraa'); 
 //var uart = new mraa.Uart(0); 
 //console.log("start GPS decoder on port " + uart.getDevicePath());
 //console.log('MRAA Version: ' + mraa.getVersion());
 
+var dbTimer = setTimeout(openDB, 2000);
+openPort("/dev/ttyMFD1");
+//openPort(uart.getDevicePath());
 
-// connect to database
-mc.connect("mongodb://localhost:27017/gps_debug", function(err, db) {
-    if(err) { return console.dir(err); }
-    var cDate = new Date();
-    var cName = 'data_' + cDate.getYear().toString() + cDate.getMonth().toString() + cDate.getDay().toString() + "_" + cDate.getHours().toString() + cDate.getMinutes().toString();
-    console.log ("using collection " + cName + " for storage of gps data with min distance of " + minTimeDist + " seconds");
-    collection = db.collection(cName);  
-});
+// connect to database, clear timeout on success
+function openDB(){
+    if (!collection){
+        mc.connect("mongodb://localhost:27017/gps_debug", function(err, db) {
+            if(err) { console.dir(err); }
+            var cDate = new Date();
+            var cName = 'data_' + cDate.getFullYear() + "" + cDate.getMonth() + "" + cDate.getDate() + "_" + cDate.getHours()+1 + "" +  cDate.getMinutes();
+            console.log ("using collection " + cName + " for storage of gps data with min distance of " + minTimeDist + " seconds");
+            collection = db.collection(cName);
+            clearInterval(dbTimer);
+        });
+    }
+}
 
 // open serialport
-var port = new serialport.SerialPort("/dev/ttyMFD1", {
-    baudrate: 38400,
-    parser: serialport.parsers.readline('\r\n'),
-    dataBits: 8, 
-    parity: 'none', 
-    stopBits: 1, 
-    flowControl: false 
+function openPort(portName){
+    var port = new serialport.SerialPort(portName, {
+        baudrate: 38400,
+        parser: serialport.parsers.readline('\r\n'),
+        dataBits: 8, 
+        parity: 'none', 
+        stopBits: 1, 
+        flowControl: false 
 
-});
+    });
 
-// serial data handler
-port.on('data', function(line) {
-  //  console.log(line);
+    port.on('data', onDataHandler);
+}
+
+function onDataHandler(line){
     if (line.charAt(0) == "$"){ 
         try {
             gpsObj = nmea.parse(line);
-            // TODO: save time stamps to better recreate full timestamp (fix-type only contains the time)
-            if (gpsObj.type == 'fix' && (Date.now()/1000-last) > minTimeDist){
-                last = Date.now()/1000;
-                console.log( gpsObj.timestamp + ": lat = " + gpsObj.lat + " / long = " + gpsObj.lon);
+            if (gpsObj.sentence == 'RMC'){
+                strDate = gpsObj.date;
+            } else if (strDate !== null && (lastPos.lat != gpsObj.lat || lastPos.lon != gpsObj.lon) && gpsObj.sentence == 'GGA' && (Date.now()/1000-lastUpdate) > minTimeDist){
+                lastUpdate = Date.now()/1000;
+                lastPos.lat = gpsObj.lat;
+                lastPos.lon = gpsObj.lon;
+                gpsObj.date = strDate; // insert date as normal points don't have it
+                console.log( strDate + " " + gpsObj.timestamp + ": lat = " + gpsObj.lat + " / long = " + gpsObj.lon);
                 if (collection){
                     collection.insert(gpsObj);
                 }
@@ -56,4 +72,4 @@ port.on('data', function(line) {
             console.error("couldn't parse " + e);
         } 
     }
-});
+}
