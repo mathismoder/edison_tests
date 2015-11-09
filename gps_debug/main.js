@@ -29,7 +29,7 @@ function openDB(){
         mc.connect("mongodb://localhost:27017/gps_debug", function(err, db) {
             if(err) { console.dir(err); }
             var cDate = new Date();
-            var cName = 'data_' + cDate.getFullYear() + "" + cDate.getMonth() + "" + cDate.getDate() + "_" + cDate.getHours()+1 + "" +  cDate.getMinutes();
+            var cName = 'data_' + cDate.getFullYear() + "" + pad((cDate.getMonth()+1),2) + "" + pad(cDate.getDate(),2) + "_" + pad((cDate.getHours()),2) + "" +  pad(cDate.getMinutes(),2);
             console.log ("using collection " + cName + " for storage of gps data with min distance of " + minTimeDist + " seconds");
             collection = db.collection(cName);
             clearInterval(dbTimer);
@@ -72,4 +72,9 @@ function onDataHandler(line){
             console.error("couldn't parse " + e);
         } 
     }
+}
+
+
+function pad(value, length) {
+    return (value.toString().length < length) ? pad("0"+value, length):value;
 }
