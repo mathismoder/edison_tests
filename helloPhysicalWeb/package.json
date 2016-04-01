@@ -1,0 +1,15 @@
+{
+  "name": "helloPhysicalWeb",
+  "version": "0.0.1",
+  "description": "hello edison client",
+  "main": "main.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "dependencies": {
+  	"socket.io-client": "~1.3.2",
+  	"mdns": "~2.2.2",
+  	"uri-beacon": "~0.2.1",
+      "exec": "latest"
+  }
+}

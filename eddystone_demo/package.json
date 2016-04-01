@@ -1,0 +1,13 @@
+{
+  "name": "eddystone-demo",
+  "description": "",
+  "version": "0.0.0",
+  "main": "main.js",
+  "engines": {
+      "node": ">=0.10.0"
+  },
+  "dependencies": {
+      "eddystone-beacon": "latest",
+      "bluetooth-hci-socket": "latest"
+  }
+}
